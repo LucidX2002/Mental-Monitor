@@ -1,72 +1,60 @@
 # Mental Monitor
 
-A GitHub-ready mental health monitoring demo with a separated frontend and backend. The app focuses on four core flows: overview metrics, risk screening, user profiles, and similar-user recommendations.
+Mental Monitor 是一个前后端分离的心理健康监测演示项目，用于对社区用户的多模态特征进行聚合分析，并提供风险筛查、用户画像和相似用户推荐能力。
 
-## What This Repository Contains
+项目当前聚焦 4 个核心场景：
+
+- 全局概览：展示社区整体风险分布和关键统计指标
+- 风险筛查：根据人格特征阈值筛出高风险用户
+- 用户画像：查看单个用户的人格、行为和帖子摘要
+- 相似推荐：基于融合嵌入返回相似用户列表
+
+## 架构
 
 ```text
-backend/   Python API, data loading, recommendation logic, case-state persistence
-frontend/  Static HTML/CSS/JS client that consumes the backend API
-data/      Clean data mount points used by the app at runtime
-scripts/   Local helper scripts for bootstrapping data and starting dev servers
-tests/     Regression tests for parsing, merge logic, and recommendation behavior
-legacy/    Local-only archived experiments, models, and artifacts (gitignored)
+frontend/  静态前端页面，负责展示和交互
+backend/   Python API，负责数据读取、解析、筛查和推荐
+data/      运行时数据挂载目录
+tests/     回归测试
+scripts/   本地开发辅助脚本
 ```
 
-The repository is code-first. Large datasets, trained models, and old experiment outputs are intentionally kept out of version control.
+前端通过 HTTP 接口调用后端，不直接读取本地数据文件。
 
-## Requirements
+## 技术栈
 
-- Python 3.11+
-- `pip`
-- Optional: an existing local copy of the legacy dataset/artifacts if you want to use `scripts/bootstrap_data.py`
+- Frontend: HTML, CSS, Vanilla JavaScript
+- Backend: Python 3.11, `http.server`, `pandas`, `numpy`, `scikit-learn`
+- Testing: `unittest`
 
-## Installation
+## 快速开始
 
-1. Clone the repository:
-
-```bash
-git clone <your-repo-url>
-cd mental-monitor
-```
-
-2. Create and activate a virtual environment:
+### 1. 安装依赖
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-```
-
-3. Install dependencies:
-
-```bash
 pip install -r requirements.txt
 ```
 
-## Data Setup
+### 2. 准备数据
 
-The backend looks for these runtime files first:
+后端默认读取以下文件：
 
 - `data/personality.csv`
 - `data/behavior.csv`
 - `data/posts.csv`
 - `data/embeddings/fused_embeddings.npy`
 
-You have two ways to provide them:
-
-### Option 1: Mount clean app data directly
-
-Copy your prepared files into the `data/` directory using the exact names above.
-
-### Option 2: Reuse local legacy assets
-
-If this machine already has the archived local experiment files under `legacy/`, create links into `data/`:
+如果本地已经保留旧实验数据，可以执行：
 
 ```bash
 python scripts/bootstrap_data.py
 ```
 
-You can also override every path with environment variables:
+该脚本会把本地归档数据链接到 `data/` 目录，方便当前应用直接读取。
+
+也可以通过环境变量覆盖默认路径：
 
 - `MENTAL_PERSONALITY_CSV`
 - `MENTAL_BEHAVIOR_CSV`
@@ -74,39 +62,39 @@ You can also override every path with environment variables:
 - `MENTAL_EMBEDDINGS_NPY`
 - `MENTAL_STATE_JSON`
 
-## Run Locally
-
-Start the backend:
+### 3. 启动后端
 
 ```bash
 python -m backend --host 127.0.0.1 --port 8000
 ```
 
-Start the frontend:
+### 4. 启动前端
 
 ```bash
 python -m http.server 4173 -d frontend
 ```
 
-Open:
+访问：
 
 ```text
 http://127.0.0.1:4173
 ```
 
-The frontend defaults to the backend on the same host at port `8000`. To point the UI at another API host:
+如果后端不在同一地址，可以通过查询参数指定接口地址：
 
 ```text
 http://127.0.0.1:4173/?apiBase=http://127.0.0.1:9000
 ```
 
-For local development, you can also launch both servers together:
+### 5. 一键启动开发环境
 
 ```bash
 python scripts/dev.py
 ```
 
-## API Endpoints
+## API
+
+主要接口如下：
 
 - `GET /api/health`
 - `GET /api/summary`
@@ -116,55 +104,24 @@ python scripts/dev.py
 - `GET /api/users/{id}/recommendations`
 - `POST /api/users/{id}/case-state`
 
-## Test
+## 测试
 
-Run the regression suite:
+运行回归测试：
 
 ```bash
 python -m unittest discover -s tests -v
 ```
 
-## Publish To GitHub
+## 目录说明
 
-If you are creating a new GitHub repository for this project, the usual flow is:
+- `backend/config.py`：运行路径配置
+- `backend/repository.py`：数据加载与状态持久化
+- `backend/service.py`：业务逻辑聚合层
+- `backend/http.py`：HTTP API 入口
+- `frontend/app.js`：前端数据拉取与交互逻辑
 
-1. Initialize git locally:
+## 注意事项
 
-```bash
-git init -b main
-git add .
-git commit -m "Publish a clean frontend/backend split for mental monitor
-
-Constraint: Repository excludes large datasets and local-only artifacts
-Confidence: high
-Scope-risk: moderate
-Tested: python -m unittest discover -s tests -v
-Not-tested: Browser screenshot validation on remote hosts"
-```
-
-2. Create an empty GitHub repository on github.com.
-
-Recommended:
-
-- Name: `mental-monitor`
-- Visibility: `private` first, switch to `public` only after checking data/privacy constraints
-
-3. Connect and push:
-
-```bash
-git remote add origin git@github.com:<your-user>/mental-monitor.git
-git push -u origin main
-```
-
-If you prefer HTTPS:
-
-```bash
-git remote add origin https://github.com/<your-user>/mental-monitor.git
-git push -u origin main
-```
-
-## Notes
-
-- `legacy/` is intentionally local-only and ignored by git.
-- `data/` is treated as a runtime mount point, not a dataset warehouse.
-- The current frontend is framework-free on purpose: it keeps the deployment surface small and easy to review.
+- `data/` 是运行时数据目录，不建议作为大规模数据仓库存放原始文件
+- `legacy/` 为本地归档内容，不属于当前应用主干
+- 当前版本使用轻量静态前端，便于直接部署和快速演示
