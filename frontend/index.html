@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mental Monitor</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">GitHub-ready frontend</p>
+          <h1>心理健康风险监控台</h1>
+          <p class="hero-copy">
+            独立前端通过 HTTP API 获取画像、风险名单、聚类散点和相似用户推荐。
+          </p>
+        </div>
+        <div class="hero-meta">
+          <div class="pill">Frontend: Static HTML/JS</div>
+          <div class="pill">Backend: Python API</div>
+        </div>
+      </header>
+
+      <main class="layout">
+        <aside class="panel controls-panel">
+          <div class="panel-title">
+            <h2>筛选与配置</h2>
+            <p>调整阈值后会同时刷新概要、散点和用户列表。</p>
+          </div>
+
+          <label class="field">
+            <span>用户搜索</span>
+            <input id="search-input" type="search" placeholder="输入用户 ID / trait / subreddit" />
+          </label>
+
+          <label class="field">
+            <span>神经质阈值 <strong id="neuro-value">0.70</strong></span>
+            <input id="neuro-slider" type="range" min="0" max="1" step="0.01" value="0.70" />
+          </label>
+
+          <label class="field">
+            <span>外向性上限 <strong id="extra-value">0.35</strong></span>
+            <input id="extra-slider" type="range" min="0" max="1" step="0.01" value="0.35" />
+          </label>
+
+          <label class="checkbox">
+            <input id="risk-only" type="checkbox" />
+            <span>仅显示高风险用户</span>
+          </label>
+
+          <button id="refresh-button" class="button primary">刷新视图</button>
+          <p id="backend-status" class="status-line">等待连接后端…</p>
+        </aside>
+
+        <section class="content-column">
+          <section class="panel">
+            <div class="panel-title">
+              <h2>全局概览</h2>
+              <p>当前社区风险分布和核心统计指标。</p>
+            </div>
+            <div id="stats-grid" class="stats-grid"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-title">
+              <h2>融合空间散点</h2>
+              <p>基于嵌入投影的用户分布，点击节点可联动右侧详情。</p>
+            </div>
+            <div id="scatter-root" class="scatter-root"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-title">
+              <h2>风险名单</h2>
+              <p>按照高风险优先、神经质得分次序排序。</p>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>用户</th>
+                    <th>状态</th>
+                    <th>主导人格</th>
+                    <th>神经质</th>
+                    <th>外向性</th>
+                    <th>发帖数</th>
+                  </tr>
+                </thead>
+                <tbody id="users-table"></tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+
+        <aside class="panel detail-panel">
+          <div class="panel-title">
+            <h2>用户详情</h2>
+            <p>画像、行为摘要、帖子样本与相似用户推荐。</p>
+          </div>
+          <div id="detail-root" class="detail-root empty-state">
+            请选择一个用户以查看详情。
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <script src="./app.js" type="module"></script>
+  </body>
+  </html>

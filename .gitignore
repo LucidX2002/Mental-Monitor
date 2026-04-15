@@ -1,0 +1,23 @@
+.omx/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+.DS_Store
+
+# Runtime state
+backend/state/*.json
+!backend/state/.gitkeep
+
+# Large local artifacts and legacy experiment outputs
+legacy/
+*.npy
+*.csv
+*.png
+
+# Keep clean data mount points but ignore real payloads
+data/*.csv
+data/embeddings/*.npy
+!data/README.md
+!data/.gitkeep
+!data/embeddings/.gitkeep
