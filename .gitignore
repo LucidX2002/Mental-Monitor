@@ -4,6 +4,7 @@ __pycache__/
 .pytest_cache/
 .venv/
 .DS_Store
+AGENTS.md
 
 # Runtime state
 backend/state/*.json
