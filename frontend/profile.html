@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>个体画像 · 青少年心理画像与风险预警系统</title>
+    <link rel="stylesheet" href="./styles.css?v=20260416b" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="masthead compact">
+        <div class="masthead-copy">
+          <div class="brand-row">
+            <span class="brand-mark">像</span>
+            <p class="eyebrow">单用户心理研判页面</p>
+          </div>
+          <h1>个体画像</h1>
+          <p class="lede">
+            面向单用户研判，集中展示人格特征、行为摘要、帖子样本、状态管理和相似用户推荐。
+          </p>
+        </div>
+
+        <div class="masthead-side">
+          <div class="api-card">
+            <span class="api-label">系统连接状态</span>
+            <strong id="api-base-value" class="api-value">等待解析…</strong>
+            <p id="backend-status" class="status-line">正在准备连接后端…</p>
+          </div>
+
+          <div class="header-actions">
+            <button id="refresh-button" class="button primary" type="button">刷新画像</button>
+            <button id="export-report-button" class="button subtle" type="button">导出画像报告</button>
+            <button id="reset-api-button" class="button subtle" type="button">重置接口地址</button>
+          </div>
+        </div>
+      </header>
+
+      <nav class="nav-strip" aria-label="系统导航">
+        <a class="nav-link" href="./index.html">总览大屏</a>
+        <a class="nav-link" href="./alerts.html">风险预警</a>
+        <a class="nav-link active" href="./profile.html">个体画像</a>
+        <a class="nav-link" href="./trends.html">趋势分析</a>
+        <a class="nav-link" href="./inference.html">文本研判</a>
+      </nav>
+
+      <main class="workspace workspace-two-column">
+        <aside class="panel control-panel">
+          <div class="panel-heading">
+            <p class="panel-kicker">检索面板</p>
+            <h2>用户检索与定位</h2>
+            <p>支持通过用户 ID 或关键词搜索用户，并切换到对应画像。</p>
+          </div>
+
+          <label class="field">
+            <span>用户搜索</span>
+            <input id="search-input" type="search" placeholder="输入用户 ID、人格关键词或社区板块" />
+          </label>
+
+          <label class="field">
+            <span>神经质阈值 <strong id="neuro-value">0.70</strong></span>
+            <input id="neuro-slider" type="range" min="0" max="1" step="0.01" value="0.70" />
+          </label>
+
+          <label class="field">
+            <span>外向性上限 <strong id="extra-value">0.35</strong></span>
+            <input id="extra-slider" type="range" min="0" max="1" step="0.01" value="0.35" />
+          </label>
+
+          <section class="result-panel">
+            <div class="result-panel-head">
+              <strong>候选用户</strong>
+              <span id="result-count" class="helper-text">0 条</span>
+            </div>
+            <div id="candidate-list" class="candidate-list"></div>
+          </section>
+        </aside>
+
+        <section class="panel detail-panel">
+          <div class="panel-heading">
+            <p class="panel-kicker">研判结果</p>
+            <h2>用户详细画像</h2>
+            <p>包含处置状态、人格特征、行为摘要、社区板块和相似用户推荐。</p>
+          </div>
+          <div id="detail-root" class="detail-root empty-state">请选择一个用户以查看详细画像。</div>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="./profile.js?v=20260416b"></script>
+  </body>
+</html>

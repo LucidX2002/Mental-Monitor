@@ -3,36 +3,62 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mental Monitor</title>
-    <link rel="stylesheet" href="./styles.css" />
+    <title>总览大屏 · 青少年心理画像与风险预警系统</title>
+    <link rel="stylesheet" href="./styles.css?v=20260416b" />
   </head>
   <body>
-    <div class="app-shell">
-      <header class="hero">
-        <div>
-          <p class="eyebrow">GitHub-ready frontend</p>
-          <h1>心理健康风险监控台</h1>
-          <p class="hero-copy">
-            独立前端通过 HTTP API 获取画像、风险名单、聚类散点和相似用户推荐。
+    <div class="page-shell">
+      <header class="masthead">
+        <div class="masthead-copy">
+          <div class="brand-row">
+            <span class="brand-mark">青</span>
+            <p class="eyebrow">基于网络数据的多模态心理评估辅助系统</p>
+          </div>
+          <h1>总览大屏</h1>
+          <p class="lede">
+            面向答辩展示的全局监控首页。重点呈现用户画像分布、总体风险规模、主导人格分布和重点社区板块。
           </p>
         </div>
-        <div class="hero-meta">
-          <div class="pill">Frontend: Static HTML/JS</div>
-          <div class="pill">Backend: Python API</div>
+
+        <div class="masthead-side">
+          <div class="api-card">
+            <span class="api-label">系统连接状态</span>
+            <strong id="api-base-value" class="api-value">等待解析…</strong>
+            <p id="backend-status" class="status-line">正在准备连接后端…</p>
+          </div>
+
+          <div class="header-actions">
+            <button id="refresh-button" class="button primary" type="button">刷新数据</button>
+            <button id="presentation-toggle-button" class="button subtle" type="button">答辩展示模式</button>
+            <button id="reset-api-button" class="button subtle" type="button">重置接口地址</button>
+          </div>
         </div>
       </header>
 
-      <main class="layout">
-        <aside class="panel controls-panel">
-          <div class="panel-title">
-            <h2>筛选与配置</h2>
-            <p>调整阈值后会同时刷新概要、散点和用户列表。</p>
-          </div>
+      <nav class="nav-strip" aria-label="系统导航">
+        <a class="nav-link active" href="./index.html">总览大屏</a>
+        <a class="nav-link" href="./alerts.html">风险预警</a>
+        <a class="nav-link" href="./profile.html">个体画像</a>
+        <a class="nav-link" href="./trends.html">趋势分析</a>
+        <a class="nav-link" href="./inference.html">文本研判</a>
+      </nav>
 
-          <label class="field">
-            <span>用户搜索</span>
-            <input id="search-input" type="search" placeholder="输入用户 ID / trait / subreddit" />
-          </label>
+      <section class="presentation-strip panel">
+        <div>
+          <p class="panel-kicker">演示控制</p>
+          <h2>答辩展示模式</h2>
+          <p>开启后会放大用户画像分布图、强化关键指标，并弱化非必要控制项，更适合投屏展示。</p>
+        </div>
+        <button id="presentation-toggle-button-inline" class="button primary" type="button">答辩展示模式</button>
+      </section>
+
+      <main class="workspace">
+        <aside class="panel control-panel">
+          <div class="panel-heading">
+            <p class="panel-kicker">参数面板</p>
+            <h2>风险筛选条件</h2>
+            <p>调整首页大屏中的风险标记逻辑。</p>
+          </div>
 
           <label class="field">
             <span>神经质阈值 <strong id="neuro-value">0.70</strong></span>
@@ -44,67 +70,62 @@
             <input id="extra-slider" type="range" min="0" max="1" step="0.01" value="0.35" />
           </label>
 
-          <label class="checkbox">
-            <input id="risk-only" type="checkbox" />
-            <span>仅显示高风险用户</span>
+          <label class="field">
+            <span>快速跳转用户画像</span>
+            <input id="jump-user-input" type="search" placeholder="输入用户 ID，例如 1616" />
           </label>
 
-          <button id="refresh-button" class="button primary">刷新视图</button>
-          <p id="backend-status" class="status-line">等待连接后端…</p>
+          <button id="jump-user-button" class="button subtle" type="button">进入个体画像页</button>
         </aside>
 
-        <section class="content-column">
+        <section class="main-column">
           <section class="panel">
-            <div class="panel-title">
-              <h2>全局概览</h2>
-              <p>当前社区风险分布和核心统计指标。</p>
+            <div class="panel-heading">
+              <p class="panel-kicker">核心指标</p>
+              <h2>总体画像快照</h2>
+              <p>快速展示系统当前分析对象规模与平均心理特征水平。</p>
             </div>
             <div id="stats-grid" class="stats-grid"></div>
           </section>
 
-          <section class="panel">
-            <div class="panel-title">
-              <h2>融合空间散点</h2>
-              <p>基于嵌入投影的用户分布，点击节点可联动右侧详情。</p>
+          <section class="panel hero-panel">
+            <div class="panel-heading">
+              <p class="panel-kicker">主视图</p>
+              <h2>用户画像分布图</h2>
+              <p>基于融合表示的二维投影结果，红色表示当前规则下的高风险用户。</p>
             </div>
-            <div id="scatter-root" class="scatter-root"></div>
-          </section>
-
-          <section class="panel">
-            <div class="panel-title">
-              <h2>风险名单</h2>
-              <p>按照高风险优先、神经质得分次序排序。</p>
-            </div>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>用户</th>
-                    <th>状态</th>
-                    <th>主导人格</th>
-                    <th>神经质</th>
-                    <th>外向性</th>
-                    <th>发帖数</th>
-                  </tr>
-                </thead>
-                <tbody id="users-table"></tbody>
-              </table>
-            </div>
+            <div id="scatter-root" class="scatter-root scatter-root-large"></div>
           </section>
         </section>
 
-        <aside class="panel detail-panel">
-          <div class="panel-title">
-            <h2>用户详情</h2>
-            <p>画像、行为摘要、帖子样本与相似用户推荐。</p>
-          </div>
-          <div id="detail-root" class="detail-root empty-state">
-            请选择一个用户以查看详情。
-          </div>
+        <aside class="side-column">
+          <section class="panel">
+            <div class="panel-heading">
+              <p class="panel-kicker">结构分布</p>
+              <h2>主导人格分布</h2>
+            </div>
+            <div id="trait-distribution" class="stack-list"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <p class="panel-kicker">风险层级</p>
+              <h2>风险分层结果</h2>
+            </div>
+            <div id="risk-band-distribution" class="stack-list"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <p class="panel-kicker">社区板块</p>
+              <h2>高频主题分布</h2>
+            </div>
+            <div id="subreddit-distribution" class="stack-list"></div>
+          </section>
         </aside>
       </main>
     </div>
 
-    <script src="./app.js" type="module"></script>
+    <script type="module" src="./dashboard.js?v=20260416b"></script>
   </body>
-  </html>
+</html>

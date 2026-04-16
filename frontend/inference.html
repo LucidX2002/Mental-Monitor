@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>文本研判 · 青少年心理画像与风险预警系统</title>
+    <link rel="stylesheet" href="./styles.css?v=20260416b" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="masthead compact">
+        <div class="masthead-copy">
+          <div class="brand-row">
+            <span class="brand-mark">研</span>
+            <p class="eyebrow">算法能力展示与单文本辅助研判</p>
+          </div>
+          <h1>文本研判</h1>
+          <p class="lede">
+            输入一段帖子或留言文本，系统会调用人格分类模型输出五维特征概率，并结合当前阈值给出风险辅助判断。
+          </p>
+        </div>
+
+        <div class="masthead-side">
+          <div class="api-card">
+            <span class="api-label">系统连接状态</span>
+            <strong id="api-base-value" class="api-value">等待解析…</strong>
+            <p id="backend-status" class="status-line">正在准备连接后端…</p>
+          </div>
+
+          <div class="header-actions">
+            <button id="presentation-toggle-button" class="button subtle" type="button">答辩展示模式</button>
+            <button id="reset-api-button" class="button subtle" type="button">重置接口地址</button>
+          </div>
+        </div>
+      </header>
+
+      <nav class="nav-strip" aria-label="系统导航">
+        <a class="nav-link" href="./index.html">总览大屏</a>
+        <a class="nav-link" href="./alerts.html">风险预警</a>
+        <a class="nav-link" href="./profile.html">个体画像</a>
+        <a class="nav-link" href="./trends.html">趋势分析</a>
+        <a class="nav-link active" href="./inference.html">文本研判</a>
+      </nav>
+
+      <section class="presentation-strip panel">
+        <div>
+          <p class="panel-kicker">演示控制</p>
+          <h2>答辩展示模式</h2>
+          <p>开启后会放大输入区、雷达图与风险结论区域，更适合现场演示“输入文本 -> 输出判断”的过程。</p>
+        </div>
+        <button id="presentation-toggle-button-inline" class="button primary" type="button">答辩展示模式</button>
+      </section>
+
+      <main class="workspace workspace-two-column">
+        <aside class="panel control-panel">
+          <div class="panel-heading">
+            <p class="panel-kicker">输入面板</p>
+            <h2>单文本心理研判</h2>
+            <p>可用于展示模型对单条帖子内容的辅助分析能力。</p>
+          </div>
+
+          <label class="field">
+            <span>神经质阈值 <strong id="neuro-value">0.70</strong></span>
+            <input id="neuro-slider" type="range" min="0" max="1" step="0.01" value="0.70" />
+          </label>
+
+          <label class="field">
+            <span>外向性上限 <strong id="extra-value">0.35</strong></span>
+            <input id="extra-slider" type="range" min="0" max="1" step="0.01" value="0.35" />
+          </label>
+
+          <label class="field">
+            <span>待研判文本</span>
+            <textarea
+              id="text-input"
+              rows="12"
+              placeholder="输入一段帖子、评论或留言文本，用于进行五维人格特征与风险辅助判断。"
+            ></textarea>
+          </label>
+
+          <div class="field-actions">
+            <button id="analyze-button" class="button primary" type="button">开始研判</button>
+            <button id="sample-button" class="button subtle" type="button">填入示例文本</button>
+            <button id="clear-button" class="button subtle" type="button">清空输入</button>
+          </div>
+
+          <p class="helper-text">快捷键：按 <code>Ctrl + Enter</code> 或 <code>Command + Enter</code> 可直接开始研判。</p>
+
+          <div class="helper-box">
+            <strong>说明</strong>
+            <p>该结果仅用于辅助分析与答辩展示，不构成医学诊断结论。</p>
+          </div>
+        </aside>
+
+        <section class="main-column">
+          <section class="panel">
+            <div class="panel-heading">
+              <p class="panel-kicker">模型输出</p>
+              <h2>五维人格雷达图</h2>
+              <p>展示单条文本在五个人格维度上的概率输出。</p>
+            </div>
+            <div id="radar-root" class="radar-shell empty-state">请输入文本后开始研判。</div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <p class="panel-kicker">结果解释</p>
+              <h2>风险辅助判断</h2>
+            </div>
+            <div id="verdict-root" class="stack-list empty-state">等待模型输出结果。</div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="./inference.js?v=20260416b"></script>
+  </body>
+</html>

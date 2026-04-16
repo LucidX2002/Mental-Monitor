@@ -38,6 +38,21 @@ def _as_float(raw: str | None, default: float) -> float:
 class ApiHandler(BaseHTTPRequestHandler):
     service = MentalHealthService()
 
+    def do_HEAD(self) -> None:  # noqa: N802
+        parsed = urlparse(self.path)
+        if parsed.path == "/api/health":
+            data = json.dumps({"status": "ok"}, ensure_ascii=False).encode("utf-8")
+            self.send_response(HTTPStatus.OK)
+            self._write_cors_headers()
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            return
+
+        self.send_response(HTTPStatus.NOT_FOUND)
+        self._write_cors_headers()
+        self.end_headers()
+
     def do_OPTIONS(self) -> None:  # noqa: N802
         self.send_response(HTTPStatus.NO_CONTENT)
         self._write_cors_headers()
@@ -67,10 +82,41 @@ class ApiHandler(BaseHTTPRequestHandler):
                 )
                 return
 
+            if parsed.path == "/api/dashboard":
+                self._send_json(
+                    self.service.get_dashboard(
+                        scatter_limit=_as_int(query.get("scatter_limit", [None])[0], 900),
+                        neuro_threshold=_as_float(
+                            query.get("neuroticism_min", [None])[0],
+                            DEFAULT_NEUROTICISM_THRESHOLD,
+                        ),
+                        extra_threshold=_as_float(
+                            query.get("extraversion_max", [None])[0],
+                            DEFAULT_EXTRAVERSION_THRESHOLD,
+                        ),
+                    )
+                )
+                return
+
             if parsed.path == "/api/scatter":
                 self._send_json(
                     self.service.get_scatter(
                         limit=_as_int(query.get("limit", [None])[0], 800),
+                        neuro_threshold=_as_float(
+                            query.get("neuroticism_min", [None])[0],
+                            DEFAULT_NEUROTICISM_THRESHOLD,
+                        ),
+                        extra_threshold=_as_float(
+                            query.get("extraversion_max", [None])[0],
+                            DEFAULT_EXTRAVERSION_THRESHOLD,
+                        ),
+                    )
+                )
+                return
+
+            if parsed.path == "/api/trends":
+                self._send_json(
+                    self.service.get_trends(
                         neuro_threshold=_as_float(
                             query.get("neuroticism_min", [None])[0],
                             DEFAULT_NEUROTICISM_THRESHOLD,
@@ -129,6 +175,11 @@ class ApiHandler(BaseHTTPRequestHandler):
                 )
                 return
 
+            if match := re.fullmatch(r"/api/users/(\d+)/timeline", parsed.path):
+                user_id = int(match.group(1))
+                self._send_json(self.service.get_user_timeline(user_id))
+                return
+
             self._send_json({"error": "Not found"}, status=HTTPStatus.NOT_FOUND)
         except KeyError as exc:
             self._send_json({"error": str(exc)}, status=HTTPStatus.NOT_FOUND)
@@ -144,6 +195,23 @@ class ApiHandler(BaseHTTPRequestHandler):
                 status = str(payload.get("status", "pending"))
                 note = str(payload.get("note", ""))
                 self._send_json(self.service.update_case_state(user_id, status=status, note=note))
+                return
+
+            if parsed.path == "/api/analyze-text":
+                payload = self._read_json_body()
+                self._send_json(
+                    self.service.analyze_text(
+                        text=str(payload.get("text", "")),
+                        neuro_threshold=_as_float(
+                            payload.get("neuroticism_min"),
+                            DEFAULT_NEUROTICISM_THRESHOLD,
+                        ),
+                        extra_threshold=_as_float(
+                            payload.get("extraversion_max"),
+                            DEFAULT_EXTRAVERSION_THRESHOLD,
+                        ),
+                    )
+                )
                 return
 
             self._send_json({"error": "Not found"}, status=HTTPStatus.NOT_FOUND)

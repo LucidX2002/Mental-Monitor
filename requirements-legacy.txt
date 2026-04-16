@@ -1,0 +1,10 @@
+# Optional dependencies for archived / legacy experiments and demos under legacy/
+# These are NOT required to run the current app.
+
+matplotlib==3.10.3
+plotly==6.6.0
+streamlit==1.55.0
+umap-learn==0.5.11
+networkx==3.4.2
+pyvis==0.3.2
+tqdm==4.67.1

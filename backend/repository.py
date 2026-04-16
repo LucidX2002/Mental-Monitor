@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import copy
+from datetime import datetime, timezone
 import json
 from functools import cached_property
 from pathlib import Path
+import threading
 from typing import Any
 
 import numpy as np
@@ -16,6 +19,8 @@ class MentalRepository:
     def __init__(self, paths: BackendPaths | None = None) -> None:
         self.paths = paths or BackendPaths.from_environment()
         self.paths.state_json.parent.mkdir(parents=True, exist_ok=True)
+        self._state_lock = threading.RLock()
+        self._state_cache: dict[str, Any] | None = None
 
     @cached_property
     def frame(self) -> pd.DataFrame:
@@ -56,34 +61,89 @@ class MentalRepository:
         except KeyError as exc:
             raise KeyError(f"Unknown sim_user_id: {user_id}") from exc
 
-    def load_case_state(self) -> dict[str, Any]:
+    def _read_case_state_from_disk(self) -> dict[str, Any]:
         if not self.paths.state_json.exists():
             return {}
         try:
-            return json.loads(self.paths.state_json.read_text(encoding="utf-8"))
+            state = json.loads(self.paths.state_json.read_text(encoding="utf-8"))
+            return self._normalize_state(state)
         except json.JSONDecodeError:
             return {}
 
+    @staticmethod
+    def _default_case_state() -> dict[str, Any]:
+        return {"status": "pending", "notes": [], "history": []}
+
+    def _normalize_entry(self, entry: dict[str, Any]) -> dict[str, Any]:
+        normalized = self._default_case_state()
+        normalized["status"] = str(entry.get("status", "pending"))
+
+        notes = entry.get("notes", [])
+        normalized["notes"] = [str(note) for note in notes if str(note).strip()]
+
+        history = entry.get("history", [])
+        normalized_history = []
+        for item in history:
+            if not isinstance(item, dict):
+                continue
+            normalized_history.append(
+                {
+                    "ts": str(item.get("ts", "")),
+                    "status": str(item.get("status", normalized["status"])),
+                    "note": str(item.get("note", "")),
+                }
+            )
+        normalized["history"] = normalized_history
+        return normalized
+
+    def _normalize_state(self, state: dict[str, Any]) -> dict[str, Any]:
+        normalized: dict[str, Any] = {}
+        for key, value in state.items():
+            if isinstance(value, dict):
+                normalized[str(key)] = self._normalize_entry(value)
+        return normalized
+
+    def load_case_state(self) -> dict[str, Any]:
+        with self._state_lock:
+            if self._state_cache is None:
+                self._state_cache = self._read_case_state_from_disk()
+            return copy.deepcopy(self._state_cache)
+
     def save_case_state(self, state: dict[str, Any]) -> None:
-        self.paths.state_json.write_text(
-            json.dumps(state, ensure_ascii=False, indent=2),
-            encoding="utf-8",
-        )
+        with self._state_lock:
+            payload = json.dumps(state, ensure_ascii=False, indent=2)
+            temp_path = self.paths.state_json.with_suffix(f"{self.paths.state_json.suffix}.tmp")
+            temp_path.write_text(payload, encoding="utf-8")
+            temp_path.replace(self.paths.state_json)
+            self._state_cache = copy.deepcopy(state)
 
     def update_case_state(self, user_id: int, status: str, note: str | None = None) -> dict[str, Any]:
-        state = self.load_case_state()
-        entry = state.setdefault(str(user_id), {"status": "pending", "notes": []})
-        entry["status"] = status
-        if note:
-            entry["notes"].append(note)
-        self.save_case_state(state)
-        return entry
+        with self._state_lock:
+            if self._state_cache is None:
+                self._state_cache = self._read_case_state_from_disk()
+            entry = self._state_cache.setdefault(str(user_id), self._default_case_state())
+            entry = self._normalize_entry(entry)
+            self._state_cache[str(user_id)] = entry
+            entry["status"] = status
+            if note:
+                entry["notes"].append(note)
+            entry.setdefault("history", []).append(
+                {
+                    "ts": datetime.now(timezone.utc).isoformat(),
+                    "status": status,
+                    "note": note or "",
+                }
+            )
+            self.save_case_state(self._state_cache)
+            return copy.deepcopy(entry)
 
     def get_case_state(self, user_id: int) -> dict[str, Any]:
         state = self.load_case_state()
-        return state.get(str(user_id), {"status": "pending", "notes": []})
+        return state.get(str(user_id), self._default_case_state())
+
+    def get_case_state_snapshot(self) -> dict[str, Any]:
+        return self.load_case_state()
 
     def get_user_row(self, user_id: int) -> pd.Series:
         index = self.require_user_index(user_id)
         return self.frame.iloc[index]
-
