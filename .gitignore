@@ -22,3 +22,6 @@ data/embeddings/*.npy
 !data/README.md
 !data/.gitkeep
 !data/embeddings/.gitkeep
+
+# Local release bundle outputs
+dist/

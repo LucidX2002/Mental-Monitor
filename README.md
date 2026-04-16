@@ -125,6 +125,43 @@ http://127.0.0.1:4173/index.html?apiBase=http://your-host:port
 
 因此在离线环境下，文本研判仍可工作。
 
+## 轻量仓库 + Release 运行包
+
+当前仓库保持代码为主，不直接提交大模型和运行数据。  
+如果你希望别人下载后尽快运行，推荐使用：
+
+- GitHub 仓库：获取代码
+- GitHub Release：获取最小运行资源包
+
+推荐发布的运行资源包应包含：
+
+- `models/all-MiniLM-L6-v2`
+- `data/personality.csv`
+- `data/behavior.csv`
+- `data/posts.csv`
+- `data/embeddings/fused_embeddings.npy`
+
+维护者可以在本地生成运行资源包：
+
+```bash
+python scripts/build_release_bundle.py
+```
+
+该命令会生成：
+
+- `dist/mental-monitor-runtime-YYYYMMDD.zip`
+- `dist/mental-monitor-runtime-YYYYMMDD.manifest.json`
+- `dist/mental-monitor-runtime-YYYYMMDD.sha256`
+
+使用方式：
+
+1. 获取本仓库代码
+2. 从 GitHub Release 下载 `mental-monitor-runtime-YYYYMMDD.zip`
+3. 将 zip 解压到仓库根目录
+4. 按本 README 中的启动方式运行
+
+发布说明模板见：[RELEASE_NOTES.md](/home/xiaye/lucidx/mental/RELEASE_NOTES.md)
+
 ## 导出能力
 
 - 风险预警页：
